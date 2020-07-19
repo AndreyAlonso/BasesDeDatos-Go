@@ -2,6 +2,9 @@ package product
 
 import "time"
 
+// Models slice of Model
+type Models []*Model
+
 // Model of product
 type Model struct {
 	ID           uint
@@ -12,11 +15,9 @@ type Model struct {
 	UpdatedAt    time.Time
 }
 
-// Models slice of Model
-type Models []*Model
-
 type Storage interface {
 	Migrate() error
+	Create(*Model) error
 	// Create(*Model) error
 	// Updated(*Model) error
 	// GetAll() (Models, error)
@@ -38,4 +39,10 @@ func NewService(s Storage) *Service {
 // Migrate is used for migrate product
 func (s *Service) Migrate() error {
 	return s.storage.Migrate()
+}
+
+// Create es usado para crear un producto
+func (s *Service) Create(m *Model) error {
+	m.CreatedAt = time.Now()
+	return s.storage.Create(m)
 }
