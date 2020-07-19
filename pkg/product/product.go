@@ -18,12 +18,7 @@ type Model struct {
 type Storage interface {
 	Migrate() error
 	Create(*Model) error
-	// Create(*Model) error
-	// Updated(*Model) error
-	// GetAll() (Models, error)
-	// GetByID(uint) (*Model, error)
-	// Delete(uint) error
-
+	GetAll() (Models, error)
 }
 
 // Serivce of product
@@ -45,4 +40,9 @@ func (s *Service) Migrate() error {
 func (s *Service) Create(m *Model) error {
 	m.CreatedAt = time.Now()
 	return s.storage.Create(m)
+}
+
+// GetAll es usado para obtener todos los productos
+func (s *Service) GetAll() (Models, error) {
+	return s.storage.GetAll()
 }

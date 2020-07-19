@@ -13,14 +13,13 @@ func main() {
 
 	storageProduct := storage.NewPsqlProduct(storage.Pool())
 	serviceProduct := product.NewService(storageProduct)
-
-	m := &product.Model{
-		Name:  "Curso de Go",
-		Price: 50,
-	}
-	if err := serviceProduct.Create(m); err != nil {
-		log.Fatalf("product.Create: %v", err)
+	ms, err := serviceProduct.GetAll()
+	if err != nil {
+		log.Fatalf("product.GetAll: %v", err)
 	}
 
-	fmt.Printf("%+v\n", m)
+	for row := range ms {
+		fmt.Println(ms[row])
+	}
+
 }

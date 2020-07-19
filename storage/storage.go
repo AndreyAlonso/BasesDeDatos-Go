@@ -6,6 +6,7 @@ import (
 	"log"
 	"sync"
 
+	// Se accede a:
 	_ "github.com/lib/pq"
 )
 
@@ -14,6 +15,7 @@ var (
 	once sync.Once
 )
 
+// NewPostgresDB realiza la conexión con la base de datos
 func NewPostgresDB() {
 	once.Do(func() {
 		var err error

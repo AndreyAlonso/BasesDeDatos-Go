@@ -21,6 +21,10 @@ const (
 	psqlCreateProduct = `
 		INSERT INTO products(name,observations,price,created_at)
 		VALUES($1, $2, $3, $4) RETURNING id`
+	psqlGetAllProduct = `
+		SELECT id, name,observations,price,created_at,updated_at
+		FROM products
+	`
 )
 
 // PsqlProduct used for work with postgres - product
@@ -69,4 +73,49 @@ func (p *PsqlProduct) Create(m *product.Model) error {
 
 	fmt.Println("Se creo el producto correctamente")
 	return nil
+}
+
+// GetAll implementa la interfaz product.Storage
+func (p *PsqlProduct) GetAll() (product.Models, error) {
+	stmt, err := p.db.Prepare(psqlGetAllProduct)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ms := make(product.Models, 0)
+	// Se recorren todos los registros obtenidos de la consulta
+	for rows.Next() {
+		m := &product.Model{}
+
+		observationsNull := sql.NullString{}
+		updatedAtNull := sql.NullTime{}
+		err := rows.Scan(
+			&m.ID,
+			&m.Name,
+			&observationsNull,
+			&m.Price,
+			&m.CreatedAt,
+			&updatedAtNull,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		m.Observations = observationsNull.String
+		m.UpdatedAt = updatedAtNull.Time
+
+		ms = append(ms, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ms, nil
 }
