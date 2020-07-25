@@ -13,13 +13,11 @@ func main() {
 
 	storageProduct := storage.NewPsqlProduct(storage.Pool())
 	serviceProduct := product.NewService(storageProduct)
-	ms, err := serviceProduct.GetAll()
+	m, err := serviceProduct.GetByID(2)
 	if err != nil {
 		log.Fatalf("product.GetAll: %v", err)
 	}
 
-	for row := range ms {
-		fmt.Println(ms[row])
-	}
+	fmt.Println(m)
 
 }

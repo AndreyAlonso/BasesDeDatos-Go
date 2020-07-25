@@ -19,6 +19,7 @@ type Storage interface {
 	Migrate() error
 	Create(*Model) error
 	GetAll() (Models, error)
+	GetByID(uint) (*Model, error)
 }
 
 // Serivce of product
@@ -45,4 +46,9 @@ func (s *Service) Create(m *Model) error {
 // GetAll es usado para obtener todos los productos
 func (s *Service) GetAll() (Models, error) {
 	return s.storage.GetAll()
+}
+
+// GetByID es  usado para obtener un producto
+func (s *Service) GetByID(id uint) (*Model, error) {
+	return s.storage.GetByID(id)
 }

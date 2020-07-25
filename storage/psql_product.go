@@ -7,6 +7,10 @@ import (
 	"../pkg/product"
 )
 
+type scanner interface {
+	Scan(dest ...interface{}) error
+}
+
 const (
 	psqlMigrateProduct = `
 		CREATE TABLE IF NOT EXISTS products(
@@ -25,6 +29,7 @@ const (
 		SELECT id, name,observations,price,created_at,updated_at
 		FROM products
 	`
+	psqlGetProductByID = psqlGetAllProduct + `WHERE id = $1`
 )
 
 // PsqlProduct used for work with postgres - product
@@ -90,32 +95,51 @@ func (p *PsqlProduct) GetAll() (product.Models, error) {
 	defer rows.Close()
 
 	ms := make(product.Models, 0)
-	// Se recorren todos los registros obtenidos de la consulta
 	for rows.Next() {
-		m := &product.Model{}
-
-		observationsNull := sql.NullString{}
-		updatedAtNull := sql.NullTime{}
-		err := rows.Scan(
-			&m.ID,
-			&m.Name,
-			&observationsNull,
-			&m.Price,
-			&m.CreatedAt,
-			&updatedAtNull,
-		)
-
+		m, err := scanRowProduct(rows)
 		if err != nil {
 			return nil, err
 		}
-		m.Observations = observationsNull.String
-		m.UpdatedAt = updatedAtNull.Time
-
 		ms = append(ms, m)
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
 	return ms, nil
+}
+
+// GetByID implementa la interfaz de product Storage
+func (p *PsqlProduct) GetByID(id uint) (*product.Model, error) {
+	stmt, err := p.db.Prepare(psqlGetProductByID)
+	if err != nil {
+		return &product.Model{}, err
+	}
+	defer stmt.Close()
+
+	return scanRowProduct(stmt.QueryRow(id))
+}
+
+func scanRowProduct(s scanner) (*product.Model, error) {
+	m := &product.Model{}
+	observationsNull := sql.NullString{}
+	updatedAtNull := sql.NullTime{}
+
+	err := s.Scan(
+		&m.ID,
+		&m.Name,
+		&observationsNull,
+		&m.Price,
+		&m.CreatedAt,
+		&updatedAtNull,
+	)
+
+	if err != nil {
+		return &product.Model{}, err
+	}
+	m.Observations = observationsNull.String
+	m.UpdatedAt = updatedAtNull.Time
+
+	return m, nil
 }
