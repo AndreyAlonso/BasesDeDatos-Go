@@ -20,6 +20,8 @@ type Storage interface {
 	Create(*Model) error
 	GetAll() (Models, error)
 	GetByID(uint) (*Model, error)
+	Update(*Model) error
+	Delete(uint) error
 }
 
 // Serivce of product
